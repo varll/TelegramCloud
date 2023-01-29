@@ -1,9 +1,10 @@
 from wordcloud import WordCloud
-# from nltk.corpus import stopwords
+import re
+
 
 class ChatCloud:
     @staticmethod
-    def filter_data(json_data: str) -> list[str]:
+    def extract_data(json_data: dict) -> list[str]:
         keys = ['media_type', 'forwarded_from']
         messages_dicts = []
 
@@ -19,27 +20,40 @@ class ChatCloud:
         return messages
 
     @staticmethod
-    def create_cloud(messages: list[str]):
+    def filter_data(messages: list[str]) -> str:
         words = ''
-        with open('data/stopwords.txt', encoding='utf8') as stopwords:
-            stop_words = stopwords.read().split('\n')
-        stop_words.extend(['это', 'ща', 'ещё', 'просто', 'почему'])
+        with open('data/stopwords.txt', encoding='utf-8') as stop_words:
+            stopwords = stop_words.read().split('\n')
+        stopwords.extend(['это', 'ща', 'еще', 'просто', 'почему', 'не', 'ну', 'на', 'да', 'че'])
 
         for txt in messages:
-            txt = str(txt)
             tokens = txt.lower().split()
-            words += " ".join(tokens) + " "
+            preproc_tokens = []
+            for token in tokens:
+                token = re.sub('ё', 'е', token)
+                token = re.sub('[^a-zA-Zа-яА-Я]', '', token)
+                if set(token) != {'х', 'а'} and token not in stopwords:
+                    preproc_tokens.append(re.sub('[^a-zA-Zа-яА-Я]', '', token))
+            preproc_tokens = ' '.join(preproc_tokens)
+            words += preproc_tokens + ' '
+        words = words.strip()
 
+        return words
+
+    @staticmethod
+    def create_cloud(words: str):
         word_cloud = WordCloud(width=1600,
                                height=1000,
+                               random_state=42,
                                background_color='black',
-                               stopwords=stop_words,
+                               collocation_threshold=12,
                                min_font_size=10).generate(words)
 
         return word_cloud.to_image()
 
     def handle(self, json_data):
-        filtered_data = self.filter_data(json_data)
+        data = self.extract_data(json_data)
+        filtered_data = self.filter_data(data)
         cloud_img = self.create_cloud(filtered_data)
 
         return cloud_img
