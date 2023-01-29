@@ -31,7 +31,7 @@ class CloudApp:
         if st.session_state.stage == 1:
             result = st.button('Построить облако')
             if result:
-                st.image(self.chat_cloud.handle(chat))
+                st.image(self.chat_cloud.handle(chat), use_column_width='always')
 
 
 if __name__ == '__main__':
