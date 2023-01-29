@@ -33,7 +33,7 @@ class ChatCloud:
                 token = re.sub('ё', 'е', token)
                 token = re.sub('[^a-zA-Zа-яА-Я]', '', token)
                 if set(token) != {'х', 'а'} and token not in stopwords:
-                    preproc_tokens.append(re.sub('[^a-zA-Zа-яА-Я]', '', token))
+                    preproc_tokens.append(token)
             preproc_tokens = ' '.join(preproc_tokens)
             words += preproc_tokens + ' '
         words = words.strip()
