@@ -61,7 +61,8 @@ class ChatCloud:
                                random_state=42,
                                background_color='black',
                                collocation_threshold=12,
-                               min_font_size=10).generate(messages)
+                               max_words=512,
+                               min_font_size=12).generate(messages)
 
         return word_cloud.to_image()
 
