@@ -1,4 +1,5 @@
 import streamlit as st
+from datetime import datetime
 import json
 
 from src.ChatCloud import ChatCloud
@@ -7,6 +8,8 @@ from src.ChatCloud import ChatCloud
 class CloudApp:
     def __init__(self):
         self.chat_cloud = ChatCloud()
+        self.start_date = datetime(2000, 5, 13).date()
+        self.end_date = datetime(2027, 5, 13).date()
 
     @staticmethod
     def load_chat():
@@ -20,18 +23,41 @@ class CloudApp:
         else:
             return None
 
+    @staticmethod
+    def load_image():
+        uploaded_file = st.file_uploader(
+            label='Можно загрузить фото на белом фоне для маски',
+            type=['png']
+        )
+        if uploaded_file is not None:
+            return uploaded_file
+        else:
+            return None
+
     def run(self):
         st.title('Word Cloud')
         st.session_state.stage = 0
 
         chat = self.load_chat()
         if chat:
-            st.session_state.stage = 1
+            self.chat_cloud.extract_data(chat)
+            min_date, max_date = self.chat_cloud.get_dates_range()
+
+            self.start_date = st.date_input('Дата начала', min_date, min_value=min_date, max_value=max_date)
+            self.end_date = st.date_input('Дата конца', max_date, min_value=min_date, max_value=max_date)
+
+            if self.start_date > self.end_date:
+                st.error('Выберите нормальную дату')
+            else:
+                st.session_state.stage = 1
 
         if st.session_state.stage == 1:
+            img = self.load_image()
+
             result = st.button('Построить облако')
             if result:
-                st.image(self.chat_cloud.handle(chat), use_column_width='always')
+                cloud_img = self.chat_cloud.handle(self.start_date, self.end_date, img)
+                st.image(cloud_img, use_column_width='always')
 
 
 if __name__ == '__main__':
