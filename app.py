@@ -23,6 +23,17 @@ class CloudApp:
         else:
             return None
 
+    @staticmethod
+    def load_image():
+        uploaded_file = st.file_uploader(
+            label='Можно загрузить фото на белом фоне для маски',
+            type=['png']
+        )
+        if uploaded_file is not None:
+            return uploaded_file
+        else:
+            return None
+
     def run(self):
         st.title('Word Cloud')
         st.session_state.stage = 0
@@ -41,9 +52,11 @@ class CloudApp:
                 st.session_state.stage = 1
 
         if st.session_state.stage == 1:
+            img = self.load_image()
+
             result = st.button('Построить облако')
             if result:
-                cloud_img = self.chat_cloud.handle(self.start_date, self.end_date)
+                cloud_img = self.chat_cloud.handle(self.start_date, self.end_date, img)
                 st.image(cloud_img, use_column_width='always')
 
 

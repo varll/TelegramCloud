@@ -1,5 +1,6 @@
-from wordcloud import WordCloud
+from wordcloud import WordCloud, ImageColorGenerator
 from datetime import datetime
+from PIL import Image
 import numpy as np
 import re
 
@@ -55,20 +56,27 @@ class ChatCloud:
         return date_messages
 
     @staticmethod
-    def create_cloud(messages: str):
+    def create_cloud(messages: str, img):
+        params = {}
+        if img:
+            coloring = np.array(Image.open(img))
+            params['mask'] = coloring
+        else:
+            params['min_font_size'] = 12
+
         word_cloud = WordCloud(width=1600,
                                height=1000,
                                random_state=42,
                                background_color='black',
                                collocation_threshold=12,
                                max_words=512,
-                               min_font_size=12).generate(messages)
+                               **params).generate(messages)
 
         return word_cloud.to_image()
 
-    def handle(self, start_date: datetime, end_date: datetime):
+    def handle(self, start_date: datetime, end_date: datetime, img):
         filtered_data = self.filter_data()
         date_messages = self.get_date_messages(filtered_data, start_date, end_date)
-        cloud_img = self.create_cloud(date_messages)
+        cloud_img = self.create_cloud(date_messages, img)
 
         return cloud_img
