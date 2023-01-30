@@ -58,9 +58,11 @@ class ChatCloud:
     @staticmethod
     def create_cloud(messages: str, img):
         params = {}
+        image_colors = None
         if img:
             coloring = np.array(Image.open(img))
             params['mask'] = coloring
+            image_colors = ImageColorGenerator(coloring)
         else:
             params['min_font_size'] = 12
 
@@ -71,6 +73,9 @@ class ChatCloud:
                                collocation_threshold=12,
                                max_words=512,
                                **params).generate(messages)
+
+        if image_colors:
+            word_cloud = word_cloud.recolor(color_func=image_colors)
 
         return word_cloud.to_image()
 
