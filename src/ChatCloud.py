@@ -3,6 +3,7 @@ from datetime import datetime
 from PIL import Image
 import numpy as np
 import re
+import string
 
 
 class ChatCloud:
@@ -31,12 +32,17 @@ class ChatCloud:
             stopwords = stop_words.read().split('\n')
         stopwords.extend(['это', 'ща', 'еще', 'просто', 'почему', 'не', 'ну', 'на', 'да', 'че'])
 
+        emoji_re = r'\U0001F600-\U0001F64F' \
+                   r'\U0001F300-\U0001F5FF' \
+                   r'\U0001F680-\U0001F6FF' \
+                   r'\U0001F1E0-\U0001F1FF'
+
         for txt in self.messages:
             tokens = txt.lower().split()
             preproc_tokens = []
             for token in tokens:
                 token = re.sub('ё', 'е', token)
-                token = re.sub('[^a-zA-Zа-яА-Я]', '', token)
+                token = re.sub('[^a-zA-Zа-яА-Я{emoji_re}]'.format(emoji_re=emoji_re), '', token)
                 if set(token) != {'х', 'а'} and token not in stopwords:
                     preproc_tokens.append(token.strip())
             preproc_tokens = ' '.join(preproc_tokens)
@@ -56,8 +62,9 @@ class ChatCloud:
         return date_messages
 
     @staticmethod
-    def create_cloud(messages: str, img):
+    def create_cloud(messages: str, img, emoji, background_color: str, colormap: str):
         params = {}
+
         image_colors = None
         if img:
             coloring = np.array(Image.open(img))
@@ -66,10 +73,19 @@ class ChatCloud:
         else:
             params['min_font_size'] = 12
 
-        word_cloud = WordCloud(width=1600,
-                               height=1000,
+        normal_word = r"(?:\w[\w']+)"
+        emoji_re = r""
+        if emoji:
+            emoji_re = r"(?:[^\s])(?<![\w{ascii_printable}])".format(ascii_printable=string.printable)
+        regexp = r"{normal_word}|{emoji}".format(normal_word=normal_word, emoji=emoji_re)
+        params['regexp'] = regexp
+
+        word_cloud = WordCloud(font_path='data/Symbola.ttf',
+                               width=1920,
+                               height=1080,
                                random_state=42,
-                               background_color='black',
+                               background_color=background_color,
+                               colormap=colormap.lower(),
                                collocation_threshold=12,
                                max_words=512,
                                **params).generate(messages)
@@ -79,9 +95,9 @@ class ChatCloud:
 
         return word_cloud.to_image()
 
-    def handle(self, start_date: datetime, end_date: datetime, img):
+    def handle(self, start_date: datetime, end_date: datetime, img, emoji, background_color: str, colormap: str):
         filtered_data = self.filter_data()
         date_messages = self.get_date_messages(filtered_data, start_date, end_date)
-        cloud_img = self.create_cloud(date_messages, img)
+        cloud_img = self.create_cloud(date_messages, img, emoji, background_color, colormap)
 
         return cloud_img

@@ -53,10 +53,24 @@ class CloudApp:
 
         if st.session_state.stage == 1:
             img = self.load_image()
+            background_color = st.selectbox(
+                'Цвет заднего фона',
+                ('Black', 'White'))
+            colormap = st.selectbox(
+                'Цветовая карта',
+                ('Viridis', 'Plasma', 'Inferno', 'Magma', 'Cividis'))
+            emoji = st.checkbox('Оставить emoji')
 
             result = st.button('Построить облако')
             if result:
-                cloud_img = self.chat_cloud.handle(self.start_date, self.end_date, img)
+                cloud_img = self.chat_cloud.handle(
+                    self.start_date,
+                    self.end_date,
+                    img,
+                    emoji,
+                    background_color,
+                    colormap
+                )
                 st.image(cloud_img, use_column_width='always')
 
 
