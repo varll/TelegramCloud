@@ -6,7 +6,7 @@
 ```
 Диалог ⭢  Экспорт истории чатов ⭢  Формат: json
 ```
-https://varll-telegramcloud-app-develop-6kkdm2.streamlit.app/
+https://telegramcloud.streamlit.app/
 
 ### Локально
 ```python
